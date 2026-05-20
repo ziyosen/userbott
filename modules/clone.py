@@ -4,19 +4,38 @@ from pyrogram import filters
 from pyrogram.types import Message
 from app import app
 
+# JALUR ABSOLUT PREMIUM (Style Benxx Project)
+from modules.styles import result_box, error, success, bold, mono, info
+
+print("👥 System: Clones & Reverts Module loading...")
+
 BACKUP_DIR = "profile_backups"
 os.makedirs(BACKUP_DIR, exist_ok=True)
 
-# HAPUS filters.me biar akun mana aja bisa nge-trigger buat tes!
-@app.on_message()
+# 🛡️ ID DEVELOPER UTAMA (BENXX) - TIDAK BOLEH DIKLONING OLEH SIAPAPUN
+DEV_ID = 7687084316
+
+@app.on_message(filters.text, group=-1)
 async def jalur_clones(client, message: Message):
     text = message.text
     if not text:
         return
 
+    # Ambil ID pengirim pesan dengan aman
+    sender_id = message.from_user.id if message.from_user else None
+    if not sender_id:
+        return
+
+    # Ambil info akun userbot yang sedang berjalan
+    me = await client.get_me()
+
     # --- PROSES CLONES ---
     if text.startswith(".clones"):
-        await message.edit("🔄 **[Benxx Project] Memproses kloning profil...**")
+        # KEAMANAN 1: Cek apakah yang ngetik itu beneran pemilik ubot ini
+        if sender_id != me.id:
+            return await message.reply(info(f"Yeee mau ngerjain ya? Perintah ini cuma bisa dikendalikan oleh {bold('Owner')}! 😜", title="NOT ALLOWED"))
+
+        await message.edit(bold("🔄 Memproses..."))
         
         user_target = None
         cmd_args = text.split()
@@ -27,22 +46,28 @@ async def jalur_clones(client, message: Message):
             try:
                 user_target = await client.get_users(cmd_args[1])
             except Exception as e:
-                return await message.edit(f"❌ **Target gagal diambil:** {e}")
+                return await message.edit(error(f"Target gagal diambil: {e}"))
 
         if not user_target:
-            return await message.edit("⚠️ **Gagal:** Reply orangnya atau ketik `.clones @username` Ben!")
+            return await message.edit(error("Reply orangnya atau ketik `.clones @username` Ben!"))
+
+        # 👑 KEAMANAN 2: PROTEKSI AKUN DEVELOPER (BENXX ANTI-CLONE)
+        if user_target.id == DEV_ID:
+            return await message.edit(error(
+                f"Peringatan: Akun {bold('Developer')} dilindungi! Tidak bisa dikloning oleh siapapun.", 
+                title="PROTECTED ACCOUNT"
+            ))
 
         try:
-            my_id = message.from_user.id
-            backup_file = os.path.join(BACKUP_DIR, f"{my_id}.json")
+            backup_file = os.path.join(BACKUP_DIR, f"{me.id}.json")
 
+            # Ambil backup profil asli ubot kalau belum ada
             if not os.path.exists(backup_file):
-                me = await client.get_me()
                 my_full = await client.get_chat(me.id)
                 my_photo = None
                 if me.photo:
                     try:
-                        my_photo = await client.download_media(me.photo.big_file_id, file_name=os.path.join(BACKUP_DIR, f"{my_id}_ori.jpg"))
+                        my_photo = await client.download_media(me.photo.big_file_id, file_name=os.path.join(BACKUP_DIR, f"{me.id}_ori.jpg"))
                     except:
                         pass
 
@@ -55,6 +80,7 @@ async def jalur_clones(client, message: Message):
                 with open(backup_file, 'w') as f:
                     json.dump(backup_data, f)
 
+            # Eksekusi ngebajak profil target
             target_full = await client.get_chat(user_target.id)
             await client.update_profile(
                 first_name=user_target.first_name or "",
@@ -66,24 +92,27 @@ async def jalur_clones(client, message: Message):
                 try:
                     target_photo = await client.download_media(user_target.photo.big_file_id, file_name="temp_clones.jpg")
                     await client.set_profile_photo(photo=target_photo)
-                    os.remove(target_photo)
+                    if os.path.exists(target_photo):
+                        os.remove(target_photo)
                 except Exception as e:
-                    await message.edit(f"⚠️ Nama/Bio sukses, tapi foto gagal: {e}")
-                    return
+                    return await message.edit(error(f"Nama/Bio sukses, tapi foto gagal: {e}"))
 
-            await message.edit(f"✅ **Sukses Kloning!** Sekarang profil userbot lo berubah.\nKetik `.reverts` buat balik asli.")
+            res_text = f"👤 {bold('Kloning Ke:')} {user_target.first_name}\n📌 Ketik `.reverts` buat balik semula."
+            await message.edit(result_box("CLONING SUCCESS", res_text, icon="🎭"))
 
         except Exception as e:
-            await message.edit(f"💥 **Eror Sistem:** {str(e)}")
+            await message.edit(error(str(e), title="EROR SISTEM"))
 
     # --- PROSES REVERTS ---
     elif text.startswith(".reverts"):
-        await message.edit("🔄 **Mengembalikan profil asli...**")
-        my_id = message.from_user.id
-        backup_file = os.path.join(BACKUP_DIR, f"{my_id}.json")
+        if sender_id != me.id:
+            return
+
+        await message.edit(bold("🔄 Mengembalikan..."))
+        backup_file = os.path.join(BACKUP_DIR, f"{me.id}.json")
 
         if not os.path.exists(backup_file):
-            return await message.edit("❌ **Gagal:** Data backup asli gak ketemu.")
+            return await message.edit(error("Data backup asli gak ketemu."))
 
         try:
             with open(backup_file, 'r') as f:
@@ -97,13 +126,19 @@ async def jalur_clones(client, message: Message):
 
             photo_path = backup_data.get("photo_path")
             if photo_path and os.path.exists(photo_path):
-                await client.set_profile_photo(photo=photo_path)
-                os.remove(photo_path)
+                try:
+                    await client.set_profile_photo(photo=photo_path)
+                    if os.path.exists(photo_path):
+                        os.remove(photo_path)
+                except:
+                    pass
 
             if os.path.exists(backup_file):
                 os.remove(backup_file)
 
-            await message.edit("✅ **Profil userbot sudah kembali normal!**")
+            await message.edit(success("Profil userbot sudah kembali normal", title="REVERT SUCCESS"))
 
         except Exception as e:
-            await message.edit(f"❌ **Eror Revert:** {str(e)}")
+            await message.edit(error(str(e), title="EROR REVERT"))
+
+print("✅ System: Clones & Reverts Module Ready with Dev Protection!")
