@@ -21,3 +21,5 @@ unknown_errors.txt
 
 # Downloads
 downloads/
+.cache/
+.cargo/
