@@ -37,6 +37,7 @@ async def help_pro_handler(client, message: Message):
     broadcast = (
         f"📢 {bold('BROADCAST')}\n"
         f"• {mono('.gcast')} — {italic('Global Broadcast')}\n"
+        f"• {mono('.listbl')}    — {italic('Untuk melihat daftar grup yg di bl')}\n"
         f"• {mono('.bl')}    — {italic('Add Blacklist')}\n"
         f"• {mono('.unbl')}  — {italic('Remove Blacklist')}\n\n"
     )
@@ -72,7 +73,8 @@ async def help_pro_handler(client, message: Message):
         f"• {mono('.penyok')} — {italic('Face Distortion')}\n"
         f"• {mono('.bulge')} [strength] - {italic('Efek cembung ekstrim (default 1.5)')}\n"
         f"   Contoh: {mono('.bulge 2.5')} untuk efek parah, reply ke foto/stiker\n"
-        f"• {mono('.emoji')}  — {italic('Text to Emoji')}\n"
+        f"• {mono('.clones')}  — {italic('mode penyamaran')}\n"
+        f"• {mono('.reverts')}  — {italic('balik ke akun semula')}\n"
         f"• {mono('.whois')}  — {italic('User Profiling')}\n\n"
     )
 
