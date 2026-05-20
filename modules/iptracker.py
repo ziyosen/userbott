@@ -1,13 +1,17 @@
 import requests
 import asyncio
 from pyrogram import filters
+from pyrogram.types import Message
 from app import app
-# Import style Benxx Project
-from .styles import result_box, error, success, bold, mono, info as style_info
+
+
+from modules.styles import result_box, error, success, bold, mono, info as style_info
+
+print("🔍 System: OSINT & Tracker Module loading...")
 
 # --- LOGIKA IP TRACKER ---
-@app.on_message(filters.command(["ip", "ipsakti"], ".") & filters.me)
-async def track_ip(client, message):
+@app.on_message(filters.command(["ip", "ipsakti"], ["."]) & filters.me, group=-1)
+async def track_ip(client, message: Message):
     if len(message.command) < 2:
         return await message.edit(error("Masukkan IP! Contoh: `.ipsakti 8.8.8.8`"))
     
@@ -18,7 +22,10 @@ async def track_ip(client, message):
     try:
         # Field diperlengkap untuk ipsakti
         fields = "status,message,country,regionName,city,zip,lat,lon,timezone,isp,org,as,mobile,proxy,hosting"
-        r = requests.get(f"http://ip-api.com/json/{ip}?fields={fields}", timeout=10).json()
+        
+        # Jalankan request di thread terpisah biar gak ngadat
+        loop = asyncio.get_event_loop()
+        r = await loop.run_in_executor(None, lambda: requests.get(f"http://ip-api.com/json/{ip}?fields={fields}", timeout=10).json())
         
         if r.get("status") == "fail":
             return await status.edit(error(f"Gagal: {r.get('message', 'IP tidak valid')}"))
@@ -48,8 +55,8 @@ async def track_ip(client, message):
         await status.edit(error(str(e)))
 
 # --- LOGIKA INFO NOMOR ---
-@app.on_message(filters.command("nomer", ".") & filters.me)
-async def info_nomer(client, message):
+@app.on_message(filters.command("nomer", ["."]) & filters.me, group=-1)
+async def info_nomer(client, message: Message):
     if len(message.command) < 2:
         return await message.edit(error("Masukkan nomor! Contoh: `.nomer 62812xxx`"))
     
@@ -74,15 +81,14 @@ async def info_nomer(client, message):
     await message.edit(result_box("INFO NOMOR", content, icon="📱"))
 
 # --- LOGIKA FINDUSER ---
-@app.on_message(filters.command("finduser", ".") & filters.me)
-async def find_user(client, message):
+@app.on_message(filters.command("finduser", ["."]) & filters.me, group=-1)
+async def find_user(client, message: Message):
     if len(message.command) < 2:
         return await message.edit(error("Masukkan username! Contoh: `.finduser benxx`"))
     
     u = message.command[1]
     status = await message.edit(bold(f"🔍 Mencari jejak @{u}..."))
     
-    # Daftar sosmed yang mau di-scan
     sites = {
         "Instagram": f"https://www.instagram.com/{u}",
         "GitHub": f"https://github.com/{u}",
@@ -92,16 +98,24 @@ async def find_user(client, message):
     }
     
     found = []
-    for name, url in sites.items():
+    
+    # Fungsi pembantu untuk scan web di dalam thread (Anti-Ngadat)
+    def check_site(name, url):
         try:
-            # Pengecekan sederhana via status code
-            r = requests.get(url, timeout=5)
+            r = requests.get(url, timeout=5, headers={"User-Agent": "Mozilla/5.0"})
             if r.status_code == 200:
-                found.append(f"✅ {bold(name)}: [Klik Di Sini]({url})")
+                return f"✅ {bold(name)}: [Klik Di Sini]({url})"
             else:
-                found.append(f"❌ {name}: {mono('Tidak Ada')}")
+                return f"❌ {name}: {mono('Tidak Ada')}"
         except:
-            found.append(f"⚠️ {name}: {mono('Error')}")
+            return f"⚠️ {name}: {mono('Error/Timeout')}"
+
+    # Loop asinkronus biar ubot tetep responsif bray
+    for name, url in sites.items():
+        res_site = await asyncio.to_thread(check_site, name, url)
+        found.append(res_site)
 
     res = "\n".join(found)
     await status.edit(result_box(f"OSINT: {u}", res, icon="🕵️"))
+
+print("✅ System: OSINT & Tracker Module Ready!")
