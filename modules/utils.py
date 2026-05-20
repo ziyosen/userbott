@@ -4,12 +4,10 @@ from pyrogram.types import Message
 import time
 import os
 
-# JALUR ABSOLUT (Sama persis kayak comandlist lu bray!)
 from modules.styles import result_box, bold, mono, italic, link
 
 print("📡 System: Benxx Utils Module loading...")
 
-# Ambil waktu start awal (pake time biasa, jangan datetime dulu biar gak crash)
 START_TIME_EPOCH = time.time()
 
 @app.on_message(filters.command("ping", ["."]) & filters.me, group=-1)
