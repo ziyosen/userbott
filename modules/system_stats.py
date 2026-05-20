@@ -2,11 +2,14 @@ import platform
 import os
 import time
 import psutil
-from datetime import datetime
 from pyrogram import filters, enums
+from pyrogram.types import Message
 from app import app
-# Import styles milik Benxx Project
-from .styles import result_box, info, bold, mono, progress_bar, list_items
+
+
+from modules.styles import result_box, info, bold, mono, progress_bar, list_items
+
+print("📊 System: Benxx System Stats Module loading...")
 
 # Catat waktu mulai
 START_TIME = time.time()
@@ -17,14 +20,14 @@ def get_readable_time(seconds: int) -> str:
     h, m = divmod(m, 60)
     d, h = divmod(h, 24)
     res = ""
-    if d > 0: res += f"{d}h "
+    if d > 0: res += f"{d}d "
     if h > 0: res += f"{h}h "
     if m > 0: res += f"{m}m "
     res += f"{s}s"
     return res
 
-@app.on_message(filters.command("stats", ".") & filters.me)
-async def bot_stats(client, message):
+@app.on_message(filters.command("stats", ["."]) & filters.me, group=-1)
+async def bot_stats(client, message: Message):
     status = await message.edit(bold("📊 Sedang menghitung data..."))
     
     # Counter cepat
@@ -51,8 +54,8 @@ async def bot_stats(client, message):
     
     await status.edit(result_box("STATISTIK AKUN", res, icon="📈"))
 
-@app.on_message(filters.command("sysinfo", ".") & filters.me)
-async def system_info(client, message):
+@app.on_message(filters.command("sysinfo", ["."]) & filters.me, group=-1)
+async def system_info(client, message: Message):
     await message.edit(bold("📡 Mengambil data server..."))
     
     # RAM Info
@@ -61,11 +64,14 @@ async def system_info(client, message):
     ram_usage = f"{ram.used / (1024**3):.1f}/{ram.total / (1024**3):.1f} GB"
     
     # Storage Info
-    st = os.statvfs('/')
-    total_st = st.f_frsize * st.f_blocks / (1024**3)
-    free_st = st.f_frsize * st.f_bfree / (1024**3)
-    used_st = total_st - free_st
-    st_percent = (used_st / total_st) * 100
+    try:
+        st = os.statvfs('/')
+        total_st = st.f_frsize * st.f_blocks / (1024**3)
+        free_st = st.f_frsize * st.f_bfree / (1024**3)
+        used_st = total_st - free_st
+    except:
+        total_st = 0
+        used_st = 0
 
     res = (
         f"🖥 {bold('OS:')} {mono(f'{platform.system()} {platform.release()}')}\n"
@@ -78,8 +84,8 @@ async def system_info(client, message):
     
     await message.edit(result_box("SYSTEM RESOURCES", res, icon="💻"))
 
-@app.on_message(filters.command("botinfo", ".") & filters.me)
-async def bot_info(client, message):
+@app.on_message(filters.command("botinfo", ["."]) & filters.me, group=-1)
+async def bot_info(client, message: Message):
     me = await client.get_me()
     
     content = (
@@ -91,3 +97,5 @@ async def bot_info(client, message):
     )
     
     await message.edit(result_box("BOT INFORMATION", content, icon="🤖"))
+
+print("✅ System: System Stats Module Ready!")
