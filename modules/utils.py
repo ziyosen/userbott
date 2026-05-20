@@ -1,67 +1,51 @@
 from app import app
 from pyrogram import filters
+from pyrogram.types import Message
 import time
 import os
-import platform
-from datetime import datetime
-# Import styles milik Benxx
-from .styles import result_box, bold, mono, italic, link
 
-print("✅ Utils module loaded!")
+# JALUR ABSOLUT (Sama persis kayak comandlist lu bray!)
+from modules.styles import result_box, bold, mono, italic, link
 
-# Ambil waktu start bot
-START_TIME = datetime.now()
+print("📡 System: Benxx Utils Module loading...")
 
-def get_uptime():
-    """Fungsi hitung uptime yang rapi."""
-    delta = datetime.now() - START_TIME
-    days = delta.days
-    hours, rem = divmod(delta.seconds, 3600)
-    minutes, seconds = divmod(rem, 60)
-    
-    res = ""
-    if days > 0: res += f"{days}d "
-    if hours > 0: res += f"{hours}h "
-    if minutes > 0: res += f"{minutes}m "
-    res += f"{seconds}s"
-    return res
+# Ambil waktu start awal (pake time biasa, jangan datetime dulu biar gak crash)
+START_TIME_EPOCH = time.time()
 
-@app.on_message(filters.command("ping", ".") & filters.me)
-async def ping_command(client, message):
+@app.on_message(filters.command("ping", ["."]) & filters.me, group=-1)
+async def ping_command(client, message: Message):
     start = time.time()
-    # Edit awal pakai style italic biar estetik
     await message.edit(italic("📡 Pinging..."))
     
     end = time.time()
     ping_ms = round((end - start) * 1000)
     
-    # Hasil ping dibungkus result_box
     content = f"🚀 {bold('Pong!!')}\n⏱️ {bold('Latency:')} {mono(f'{ping_ms}ms')}\n🌐 {bold('Status:')} {mono('Online')}"
     await message.edit(result_box("CONNECTION SPEED", content, icon="⚡"))
 
-@app.on_message(filters.command("alive", ".") & filters.me)
-async def alive_command(client, message):
-    # Hitung jumlah file .py di folder modules
+@app.on_message(filters.command("alive", ["."]) & filters.me, group=-1)
+async def alive_command(client, message: Message):
+    # Hitung uptime sederhana pake time bawaan
+    uptime_seconds = round(time.time() - START_TIME_EPOCH)
+    hours, rem = divmod(uptime_seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    uptime_str = f"{hours}h {minutes}m {seconds}s"
+
     try:
-        mod_count = len([f for f in os.listdir("modules") if f.endswith('.py')])
+        mod_count = len([f for f in os.listdir("modules") if f.endswith('.py') and not f.startswith('__')])
     except:
         mod_count = "Unknown"
         
-    dev_link = link("Benxx", "https://t.me/Bleszh") # Pakai username lo
+    dev_link = link("Benxx", "https://t.me/Bleszh")
     
     content = (
         f"👤 {bold('User:')} {client.me.first_name}\n"
         f"👨‍💻 {bold('Owner:')} {dev_link}\n"
-        f"⏱️ {bold('Uptime:')} {mono(get_uptime())}\n"
+        f"⏱️ {bold('Uptime:')} {mono(uptime_str)}\n"
         f"📦 {bold('Modules:')} {mono(f'{mod_count} active')}\n"
         f"🛡️ {bold('Security:')} {mono('Protected')}"
     )
     
-    # Pakai icon 🌟 buat tanda bot hidup
-    await message.edit(result_box(" USERBOT ACTIVE", content, icon="🌟"))
+    await message.edit(result_box("USERBOT ACTIVE", content, icon="🌟"))
 
-@app.on_message(filters.command("restart", ".") & filters.me)
-async def restart_bot(client, message):
-    await message.edit(result_box("RESTARTING", f"🔄 {italic('Bot sedang direstart, tunggu sebentar...')}", icon="⚙️"))
-    # Bot bakal direstart otomatis sama PM2 kalau prosesnya mati
-    os._exit(0)
+print("✅ System: Utils Module Ready!")
