@@ -1,0 +1,23 @@
+# Rahasia
+config.py
+*.session
+*.session-journal
+.env
+
+# Folder data
+data/
+*.json
+blacklist_db.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+unknown_errors.txt
+
+# Downloads
+downloads/

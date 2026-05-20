@@ -1,0 +1,8 @@
+pyrogram>=2.0.0
+tgcrypto
+psutil
+requests
+pillow
+flask
+yt-dlp
+pyromod
