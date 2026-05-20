@@ -2,34 +2,39 @@ from app import app
 from pyrogram import filters, enums
 from pyrogram.types import Message
 
-# Fallback styles (lengkap)
+# JALUR ABSOLUT (Sama kayak modul sakti lu yang lain biar anti-nyasar!)
 try:
-    from .styles import result_box, error, success, bold, mono, info, italic
+    from modules.styles import result_box, error, success, bold, mono, info, italic
 except ImportError:
-    def result_box(title, content, icon="📊"):
-        return f"{icon} **{title}**\n━━━━━━━━━━━━━━━━━━━━━━━━━\n{content}"
-    def error(text, title="GAGAL"):
-        return f"❌ **{title}**\n━━━━━━━━━━━━━━━━━━━━━━━━━\n`{text}`"
-    def success(text, title="BERHASIL"):
-        return f"✅ **{title}**\n━━━━━━━━━━━━━━━━━━━━━━━━━\n{text}"
-    def info(text, title="INFO"):
-        return f"ℹ️ **{title}**\n━━━━━━━━━━━━━━━━━━━━━━━━━\n{text}"
-    def bold(text): return f"**{text}**"
-    def mono(text): return f"`{text}`"
-    def italic(text): return f"__{text}__"
+    try:
+        from .styles import result_box, error, success, bold, mono, info, italic
+    except ImportError:
+        def result_box(title, content, icon="📊"):
+            return f"{icon} **{title}**\n━━━━━━━━━━━━━━━━━━━━━━━━━\n{content}"
+        def error(text, title="GAGAL"):
+            return f"❌ **{title}**\n━━━━━━━━━━━━━━━━━━━━━━━━━\n`{text}`"
+        def success(text, title="BERHASIL"):
+            return f"✅ **{title}**\n━━━━━━━━━━━━━━━━━━━━━━━━━\n{text}"
+        def info(text, title="INFO"):
+            return f"ℹ️ **{title}**\n━━━━━━━━━━━━━━━━━━━━━━━━━\n{text}"
+        def bold(text): return f"**{text}**"
+        def mono(text): return f"`{text}`"
+        def italic(text): return f"__{text}__"
 
-@app.on_message(filters.command("id", ".") & filters.me)
+print("ℹ️ System: Info & Profiling Module loading...")
+
+@app.on_message(filters.command("id", ["."]) & filters.me, group=-1)
 async def id_handler(client, message: Message):
     if message.reply_to_message:
         target = message.reply_to_message.from_user or message.reply_to_message.sender_chat
         name = getattr(target, "first_name", getattr(target, "title", "Unknown"))
         content = f"👤 {bold('Name:')} {name}\n🆔 {bold('ID:')} {mono(target.id)}"
-        await message.edit(result_box("USER ID", content))
+        await message.edit(result_box("USER ID", content, icon="👤"))
     else:
         content = f"📌 {bold('Chat:')} {message.chat.title or 'Private'}\n🆔 {bold('ID:')} {mono(message.chat.id)}"
-        await message.edit(result_box("CHAT ID", content))
+        await message.edit(result_box("CHAT ID", content, icon="📌"))
 
-@app.on_message(filters.command("whois", ".") & filters.me)
+@app.on_message(filters.command("whois", ["."]) & filters.me, group=-1)
 async def whois_handler(client, message: Message):
     # Tentukan target user
     if message.reply_to_message:
@@ -51,16 +56,16 @@ async def whois_handler(client, message: Message):
         )
         if user.photo:
             try:
-                await client.send_photo(message.chat.id, user.photo.big_file_id, caption=result_box("WHOIS INFO", teks))
+                await client.send_photo(message.chat.id, user.photo.big_file_id, caption=result_box("WHOIS INFO", teks, icon="🕵️"))
                 await status.delete()
             except Exception:
-                await status.edit(result_box("WHOIS INFO", teks))
+                await status.edit(result_box("WHOIS INFO", teks, icon="🕵️"))
         else:
-            await status.edit(result_box("WHOIS INFO", teks))
+            await status.edit(result_box("WHOIS INFO", teks, icon="🕵️"))
     except Exception as e:
         await status.edit(error(str(e)))
 
-@app.on_message(filters.command("info", ".") & filters.me)
+@app.on_message(filters.command("info", ["."]) & filters.me, group=-1)
 async def info_handler(client, message: Message):
     if message.chat.type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         return await message.edit(error("Harus di dalam Grup!"))
@@ -68,7 +73,7 @@ async def info_handler(client, message: Message):
     try:
         full = await client.get_chat(message.chat.id)
         count = await client.get_chat_members_count(message.chat.id)
-        # Perbaikan: menggunakan atribut call_active dari objek Chat
+        # Menggunakan atribut call_active dari objek Chat
         vc_status = 'Active' if getattr(full, 'call_active', False) else 'Off'
         teks = (
             f"🆔 {bold('Group ID:')} {mono(full.id)}\n"
@@ -78,11 +83,13 @@ async def info_handler(client, message: Message):
         )
         if full.photo:
             try:
-                await client.send_photo(message.chat.id, full.photo.big_file_id, caption=result_box("GROUP INFO", teks))
+                await client.send_photo(message.chat.id, full.photo.big_file_id, caption=result_box("GROUP INFO", teks, icon="🏰"))
                 await status.delete()
             except Exception:
-                await status.edit(result_box("GROUP INFO", teks))
+                await status.edit(result_box("GROUP INFO", teks, icon="🏰"))
         else:
-            await status.edit(result_box("GROUP INFO", teks))
+            await status.edit(result_box("GROUP INFO", teks, icon="🏰"))
     except Exception as e:
         await status.edit(error(str(e)))
+
+print("✅ System: Info & Profiling Module Ready!")
