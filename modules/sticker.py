@@ -4,11 +4,13 @@ from PIL import Image
 from pyrogram import filters
 from pyrogram.types import Message
 from app import app
-from .styles import error, info
+
+# JALUR ABSOLUT (Sama kayak modul-modul sakti lu yang udah beres tadi)
+from modules.styles import error, info
 
 print("🎨 System: Sticker & Creative Module loading...")
 
-@app.on_message(filters.command(["stiker", "sticker"], ".") & filters.me)
+@app.on_message(filters.command(["stiker", "sticker"], ["."]) & filters.me, group=-1)
 async def sticker_handler(client, message: Message):
     if not message.reply_to_message or not (message.reply_to_message.photo or message.reply_to_message.sticker):
         return await message.edit(error("Reply ke Foto atau Stiker untuk convert!"))
@@ -29,7 +31,7 @@ async def sticker_handler(client, message: Message):
         if os.path.exists(download_path): os.remove(download_path)
         if os.path.exists(sticker_webp): os.remove(sticker_webp)
 
-@app.on_message(filters.command(["bulge", "penyok"], ".") & filters.me)
+@app.on_message(filters.command(["bulge", "penyok"], ["."]) & filters.me, group=-1)
 async def bulge_handler(client, message: Message):
     """
     Efek Bulge (cembung ekstrim) untuk foto atau stiker.
@@ -108,4 +110,4 @@ async def bulge_handler(client, message: Message):
         if os.path.exists(download_path): os.remove(download_path)
         if os.path.exists(bulge_webp): os.remove(bulge_webp)
 
-print("✅ System: Sticker & Creative Module ready!")
+print("✅ System: Creative Module Ready!")
