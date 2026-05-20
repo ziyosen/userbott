@@ -2,7 +2,7 @@ from app import app
 from pyrogram import filters, enums
 from pyrogram.types import Message
 
-# JALUR ABSOLUT (Sama kayak modul sakti lu yang lain biar anti-nyasar!)
+
 try:
     from modules.styles import result_box, error, success, bold, mono, info, italic
 except ImportError:
