@@ -5,7 +5,7 @@ from pyrogram import filters
 from pyrogram.types import Message
 from app import app
 
-# JALUR ABSOLUT (Sama kayak modul-modul sakti lu yang udah beres tadi)
+
 from modules.styles import error, info
 
 print("🎨 System: Sticker & Creative Module loading...")
